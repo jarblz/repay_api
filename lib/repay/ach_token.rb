@@ -11,7 +11,11 @@ module Repay
         "Authorization" => "apptoken #{ENV['REPAY_API_TOKEN']}"
       }.freeze
       @form_id_ep = "#{ENV['REPAY_REST_BASE']}/checkout/merchant/api/v1/checkout".freeze
-      binding.pry
+      @form_id_params = {
+        "payment_method"=> "ach",
+        "StorePayment"=> "true"
+      }
+
       @customer_id    ||= funding_package_id
       @account_holder ||= account_holder
       @routing_number ||= routing_number
@@ -25,7 +29,7 @@ module Repay
 
     def checkout_form_id
       # we don't think this changes, but its less brittle if we fetch it every time
-      @form_id_request ||= RestClient.post @form_id_ep, FORM_ID_PARAMS.to_json, { :content_type => "application/json"}.merge(@auth_header)
+      @form_id_request ||= RestClient.post @form_id_ep, @form_id_params.to_json, { :content_type => "application/json"}.merge(@auth_header)
       return nil unless @form_id_request.code == 200
       @checkout_form_id ||= JSON.parse(@form_id_request.body)['checkout_form_id']
     end
